@@ -39,10 +39,21 @@ sobre **cota de malha** (underlayer) nas juntas, como era historicamente.
 
 ## Como usar
 
+### Visualizador interativo (navegador)
+Sirva a pasta `export/` e abra o `index.html`:
+```bash
+cd armor_r6/export
+python3 -m http.server 8080 --bind 0.0.0.0
+# abra http://localhost:8080/
+```
+O visualizador mostra **turntable 360° + animações Idle/Walk** das 4 variantes
+(quadros renderizados pelo motor próprio, com a animação real aplicada ao rig).
+
 ### Gerar tudo (opcional — já vem pronto em `export/`)
 ```bash
 cd armor_r6
 python3 build.py          # ~40s, sem dependências
+python3 make_viewer.py    # gera os quadros do visualizador (~4 min)
 python3 validate.py       # verifica glb/bvh/obj
 ```
 
@@ -123,6 +134,7 @@ funções `tube`/`lathe`/`dome` em `engine/armor_models.py` e rode `build.py` de
 ```
 armor_r6/
 ├── build.py               orquestrador (gera tudo)
+├── make_viewer.py         quadros do visualizador + index.html
 ├── validate.py            verificação de integridade
 ├── PESQUISA_ARMADURAS.md  pesquisa histórica + fontes
 ├── engine/

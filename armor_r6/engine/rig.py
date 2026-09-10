@@ -128,3 +128,33 @@ def build_r6_skeleton():
     sk.add("Left Leg", 1, (-0.5, 1.0, 0.0), R6_MOTORS["Left Leg"])
     sk.build_rest()
     return sk
+
+
+def deform_mesh(mesh, skeleton, bone_name, globals_):
+    """Retorna uma cópia da malha com os vértices transformados pelo osso dado."""
+    idx = skeleton.by_name(bone_name)
+    if idx < 0:
+        return mesh.copy()
+    out = mesh.copy()
+    out.verts = skeleton.deform(mesh.verts, idx, globals_)
+    return out
+
+
+def pose_parts(parts, pose, root_pos=None):
+    """Aplica uma pose (dict nome->(rx,ry,rz)) às peças (Mesh, osso).
+
+    root_pos = posição (x,y,z) da raiz; se dado, desloca tudo por (root_pos - (0,1,0))
+    (o "bob" vertical do centro de massa).
+    """
+    sk = build_r6_skeleton()
+    globals_ = sk.forward(pose)
+    delta = (0.0, 0.0, 0.0)
+    if root_pos is not None:
+        delta = (root_pos[0] - 0.0, root_pos[1] - 1.0, root_pos[2] - 0.0)
+    out = []
+    for mesh, bone in parts:
+        m = deform_mesh(mesh, sk, bone, globals_)
+        if delta != (0.0, 0.0, 0.0):
+            m.translate(delta)
+        out.append((m, bone))
+    return out
