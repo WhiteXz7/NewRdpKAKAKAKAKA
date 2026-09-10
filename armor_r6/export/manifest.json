@@ -1,0 +1,61 @@
+{
+  "fps": 30,
+  "variants": {
+    "european": {
+      "meshes": 41,
+      "triangles": 11144
+    },
+    "japanese": {
+      "meshes": 45,
+      "triangles": 10776
+    },
+    "persian": {
+      "meshes": 26,
+      "triangles": 3868
+    },
+    "ming": {
+      "meshes": 23,
+      "triangles": 4444
+    }
+  },
+  "part_centers": {
+    "Torso": [
+      0.0,
+      2.0,
+      0.0
+    ],
+    "Head": [
+      0.0,
+      3.6,
+      0.0
+    ],
+    "Right Arm": [
+      1.5,
+      2.0,
+      0.0
+    ],
+    "Left Arm": [
+      -1.5,
+      2.0,
+      0.0
+    ],
+    "Right Leg": [
+      0.5,
+      1.0,
+      0.0
+    ],
+    "Left Leg": [
+      -0.5,
+      1.0,
+      0.0
+    ]
+  },
+  "motors": {
+    "Torso": "Root Hip",
+    "Head": "Neck",
+    "Right Arm": "Right Shoulder",
+    "Left Arm": "Left Shoulder",
+    "Right Leg": "Right Hip",
+    "Left Leg": "Left Hip"
+  }
+}
