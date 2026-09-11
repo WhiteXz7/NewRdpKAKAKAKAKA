@@ -40,6 +40,20 @@ def mat_color(name):
     return (int(kd[0] * 255), int(kd[1] * 255), int(kd[2] * 255))
 
 
+_CLOTH_MAT = {"fabric", "fur", "leather", "silk"}
+
+
+def mat_spec(name):
+    """(intensidade especular, shininess) por material. Tecido = sem reflexo."""
+    kd, ks, ns = MTL_PALETTE.get(name, MTL_PALETTE["steel"])
+    if name in _CLOTH_MAT:
+        return (0.0, 1.0)
+    if name == "mail":
+        return (0.30, 40.0)
+    s = (ks[0] + ks[1] + ks[2]) / 3.0
+    return (min(1.0, s), ns)
+
+
 def mannequin_boxes():
     """Blocos do R6 (para visualizar o manequim por baixo da armadura)."""
     body = []
@@ -61,9 +75,9 @@ def render_meshes(parts, camera, size=(480, 640), with_body=True):
     r = Renderer(size[0], size[1])
     if with_body:
         for b in mannequin_boxes():
-            r.draw_mesh(camera, b, BODY_COLOR, LIGHT)
+            r.draw_mesh(camera, b, BODY_COLOR, LIGHT, spec=(0.1, 20.0))
     for m, _ in parts:
-        r.draw_mesh(camera, m, mat_color(m.material), LIGHT)
+        r.draw_mesh(camera, m, mat_color(m.material), LIGHT, spec=mat_spec(m.material))
     return r
 
 
@@ -79,9 +93,9 @@ def render_grid(variants_parts, path):
         col, row = i % cols, i // cols
         r.set_viewport(col * w, row * h, (col + 1) * w, (row + 1) * h)
         for b in mannequin_boxes():
-            r.draw_mesh(cam, b, BODY_COLOR, LIGHT)
+            r.draw_mesh(cam, b, BODY_COLOR, LIGHT, spec=(0.1, 20.0))
         for m, _ in parts:
-            r.draw_mesh(cam, m, mat_color(m.material), LIGHT)
+            r.draw_mesh(cam, m, mat_color(m.material), LIGHT, spec=mat_spec(m.material))
     r.set_viewport(0, 0, w * cols, h * rows)
     r.save_png(path)
 

@@ -18,7 +18,7 @@ from engine.animation import make_idle, make_walk, make_run, make_attack
 from engine.rig import pose_parts
 from engine.render import Camera, Renderer
 from engine.mesh import box
-from build import mat_color, LIGHT, mannequin_boxes
+from build import mat_color, mat_spec, LIGHT, mannequin_boxes
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "export")
@@ -42,10 +42,10 @@ def render_frame(parts, mann, pose, root_pos, camera):
     r = Renderer(W, H)
     mann_posed = pose_parts(mann, pose, root_pos)
     for m, _ in mann_posed:
-        r.draw_mesh(camera, m, BODY_COLOR, LIGHT)
+        r.draw_mesh(camera, m, BODY_COLOR, LIGHT, spec=(0.15, 24.0))
     posed = pose_parts(parts, pose, root_pos)
     for m, _ in posed:
-        r.draw_mesh(camera, m, mat_color(m.material), LIGHT)
+        r.draw_mesh(camera, m, mat_color(m.material), LIGHT, spec=mat_spec(m.material))
     return r
 
 
