@@ -11,6 +11,7 @@ com um servidor estático para abrir no navegador.
 
 import os
 import math
+import sys
 
 from engine import armor_models as A
 from engine.animation import make_idle, make_walk, make_run, make_attack
@@ -57,7 +58,10 @@ def main():
 
     modes = {"turntable": 16, "idle": 16, "walk": 16, "run": 16, "attack": 16}
 
-    for name in A.VARIANTS:
+    only = sys.argv[1:] if len(sys.argv) > 1 else A.VARIANTS
+    variants = [v for v in A.VARIANTS if v in only]
+
+    for name in variants:
         parts = A.build_variant(name)
         for m, _ in parts:
             m.triangulate()

@@ -473,6 +473,279 @@ def brigandine():
 
 
 # ==============================================================================
+# EUROPEAN V2 — harness gótica detalhada (séc. XV)
+# ==============================================================================
+
+def _flute_fade(h):
+    """Fade das caneluras: sobem da cintura e somem perto do pescoço."""
+    return m3.smoothstep((h - 0.30) / 0.28) * (1.0 - m3.smoothstep((h - 0.88) / 0.12))
+
+
+def _breast_width(h):
+    """Meia-largura lateral do peitoral (cintura 'de vespa')."""
+    return 0.80 + (1.00 - 0.80) * h
+
+
+def _plackart_width(h):
+    """Meia-largura do plackart (sobrepõe o peitoral na cintura e alarga embaixo)."""
+    return 1.08 - (1.08 - 0.84) * h
+
+
+def cuirass_breast():
+    """Peitoral globoso com cume medial e caneluras radiais (fluting gótico)."""
+    cols, rows = 26, 26
+    y_bot, y_top = 1.88, 2.80
+    grid = []
+    for r in range(rows):
+        h = r / (rows - 1)
+        y = y_bot + (y_top - y_bot) * h
+        w = _breast_width(h)
+        row = []
+        for c in range(cols):
+            x = -w + 2 * w * c / (cols - 1)
+            t = x / w
+            cross = 1.0 - t * t
+            bulge = 0.15 * math.sin(math.pi * h) ** 1.2
+            flutes = 0.0
+            fade = _flute_fade(h)
+            for k in (1, 2, 3):
+                d = min(abs(t - k / 4), abs(t + k / 4)) / 0.12
+                flutes += 0.014 * math.exp(-(d * d) * 4.0)
+            medial = 0.030 * math.exp(-(t / 0.16) ** 2)
+            z = 0.50 + bulge * cross + (flutes + medial) * fade
+            row.append((x, y, z))
+        grid.append(row)
+    m = thicken_surface(grid, 0.06, name="cuirass_breast", material="steel")
+    return _out(m)
+
+
+def cuirass_plackart():
+    """Plackart (placa inferior) que sobrepõe o peitoral e alarga no quadril."""
+    cols, rows = 26, 14
+    y_bot, y_top = 1.05, 1.95
+    grid = []
+    for r in range(rows):
+        h = r / (rows - 1)
+        y = y_bot + (y_top - y_bot) * h
+        w = _plackart_width(h)
+        row = []
+        for c in range(cols):
+            x = -w + 2 * w * c / (cols - 1)
+            t = x / w
+            cross = 1.0 - t * t
+            bulge = 0.06 * math.sin(math.pi * h)
+            flutes = 0.0
+            for k in (1, 2, 3):
+                d = min(abs(t - k / 4), abs(t + k / 4)) / 0.12
+                flutes += 0.010 * math.exp(-(d * d) * 4.0)
+            z = 0.50 + bulge * cross + flutes * 0.6
+            row.append((x, y, z))
+        grid.append(row)
+    m = thicken_surface(grid, 0.06, name="cuirass_plackart", material="steel")
+    return _out(m)
+
+
+def cuirass_back_v2():
+    """Dorsal com caneluras (sem cume medial)."""
+    cols, rows = 26, 26
+    y_bot, y_top = 1.88, 2.78
+    grid = []
+    for r in range(rows):
+        h = r / (rows - 1)
+        y = y_bot + (y_top - y_bot) * h
+        w = _breast_width(h)
+        row = []
+        for c in range(cols):
+            x = -w + 2 * w * c / (cols - 1)
+            t = x / w
+            cross = 1.0 - t * t
+            bulge = 0.08 * math.sin(math.pi * h)
+            flutes = 0.0
+            fade = _flute_fade(h)
+            for k in (1, 2, 3):
+                d = min(abs(t - k / 4), abs(t + k / 4)) / 0.12
+                flutes += 0.012 * math.exp(-(d * d) * 4.0)
+            z = -(0.50 + bulge * cross + flutes * fade)
+            row.append((x, y, z))
+        grid.append(row)
+    m = thicken_surface(grid, 0.06, normal_flip=True, name="cuirass_back", material="steel")
+    return _out(m)
+
+
+def stop_rib():
+    """Rebordo elevado na cintura (stop-rib), marcando o encontro peitoral/plackart."""
+    t = tube(0.76, 0.82, 1.86, 1.90, segments=24, a0=math.pi / 6, a1=5 * math.pi / 6,
+             name="stop_rib", material="steel_dark")
+    t.scale((1.0, 1.0, 0.8))
+    return _out(t)
+
+
+def lance_rest():
+    """Resto de lança no lado direito do peito (marcante em harness de guerra)."""
+    b = box(0.46, 0.56, 1.95, 2.10, 0.60, 0.68, name="lance_rest", material="steel_dark")
+    return _out(b)
+
+
+def fauld_v2():
+    """Fraldão em 'tulipa': lâminas que alargam no quadril."""
+    meshes = []
+    for i in range(3):
+        yt = 1.95 - i * 0.18
+        yb = yt - 0.16
+        r_top = 0.86 + i * 0.10
+        r_bot = r_top + 0.16
+        t = tube(r_top, r_bot, yt, yb, segments=24,
+                 a0=math.pi / 6, a1=5 * math.pi / 6, name="fauld_v2_front_%d" % i, material="steel")
+        t.scale((1.0, 1.0, 0.74))
+        meshes.append(_out(t))
+    for i in range(2):
+        yt = 1.92 - i * 0.16
+        yb = yt - 0.14
+        r = 0.90 + i * 0.08
+        t = tube(r, r + 0.12, yt, yb, segments=24,
+                 a0=7 * math.pi / 6, a1=11 * math.pi / 6, name="fauld_v2_back_%d" % i, material="steel")
+        t.scale((1.0, 1.0, 0.74))
+        meshes.append(_out(t))
+    return meshes
+
+
+def tasset_v2(side):
+    """Coxote articulado pendurado sobre a coxa."""
+    xc = LEG_R * side
+    tag = "R" if side > 0 else "L"
+    cols, rows = 9, 12
+    grid = []
+    for r in range(rows):
+        h = r / (rows - 1)
+        y = 1.45 - h * 0.60
+        row = []
+        for c in range(cols):
+            t = c / (cols - 1)
+            x = xc + (t - 0.5) * 0.66
+            lat = math.sin(math.pi * t)
+            z = 0.58 + 0.10 * lat + 0.04 * (1 - h)
+            row.append((x, y, z))
+        grid.append(row)
+    m = thicken_surface(grid, 0.05, name="tasset_v2_" + tag, material="steel")
+    return _out(m)
+
+
+def helmet_armet():
+    """Armet: calota 'de ovo' + crista + visor com fenda + respiros + barbote."""
+    meshes = []
+    skull = lathe([(0.70, 3.06), (0.72, 3.20), (0.72, 3.42), (0.66, 3.62),
+                   (0.52, 3.76), (0.04, 3.86)], segments=28, name="armet_skull", material="steel")
+    meshes.append(_out(skull))
+    comb = box(-0.022, 0.022, 3.80, 3.92, -0.46, 0.42, name="armet_comb", material="steel_dark")
+    meshes.append(_out(comb))
+    v1 = tube(0.60, 0.58, 3.40, 3.52, segments=28, a0=math.pi / 3, a1=2 * math.pi / 3,
+              name="armet_visor_upper", material="steel_dark")
+    meshes.append(_out(v1))
+    v2 = tube(0.58, 0.56, 3.16, 3.30, segments=28, a0=math.pi / 3, a1=2 * math.pi / 3,
+              name="armet_visor_lower", material="steel_dark")
+    meshes.append(_out(v2))
+    pts = []
+    for k in range(5):
+        a = math.pi / 2 + (k - 2) * 0.18
+        pts.append((0.56 * math.cos(a), 3.23, 0.56 * math.sin(a)))
+    meshes.append(_rivets(pts, size=0.05, name="armet_breaths", material="steel_dark"))
+    bv = tube(0.56, 0.54, 3.04, 3.14, segments=28, a0=math.pi / 3, a1=2 * math.pi / 3,
+              name="armet_bevor", material="steel_dark")
+    meshes.append(_out(bv))
+    ng = tube(0.64, 0.78, 3.02, 3.26, segments=28, a0=7 * math.pi / 6, a1=11 * math.pi / 6,
+              name="armet_neck", material="steel")
+    meshes.append(_out(ng))
+    return meshes
+
+
+def pauldron_v2(side):
+    """Ombreira articulada: calota + 4 lâminas descendentes."""
+    xc = ARM_R * side
+    tag = "R" if side > 0 else "L"
+    meshes = []
+    d = dome(0.60, 0.32, 2.94, segments=22, name="pauldron_v2_" + tag, material="steel")
+    d.translate((xc, 0, 0))
+    meshes.append(_out(d))
+    for i in range(4):
+        yt = 2.94 - i * 0.11
+        yb = yt - 0.10
+        r0 = 0.60 + i * 0.07
+        r1 = r0 + 0.08
+        t = tube(r0, r1, yt, yb, segments=24,
+                 a0=math.pi / 2 - 1.3, a1=math.pi / 2 + 1.3,
+                 name="pauldron_v2_lame_%d_%s" % (i, tag),
+                 material="steel_dark" if i % 2 else "steel")
+        t.translate((xc, 0, 0))
+        meshes.append(_out(t))
+    return meshes
+
+
+def couter_v2(side):
+    """Cotoveleira com asa lateral (fan)."""
+    tag = "R" if side > 0 else "L"
+    meshes = []
+    c = _cup(0.46, 0.40, (ARM_R * side, 1.95, -0.52), "-z", name="couter_v2_" + tag, material="steel")
+    meshes.append(_out(c))
+    fan = rounded_rect_plate(0.22, 0.36, 0.04, corner=0.07, segments=2,
+                             name="couter_v2_fan_" + tag, material="steel")
+    fan.rotate_y(side * math.pi / 2)
+    fan.translate((ARM_R * side * 1.20, 1.95, 0.0))
+    meshes.append(_out(fan))
+    return meshes
+
+
+def gauntlet_v2(side):
+    """Manopla 'mitten': punho alargado + placa de nós dos dedos + corpo."""
+    tag = "R" if side > 0 else "L"
+    meshes = []
+    cuff = tube(0.58, 0.50, 1.02, 1.20, segments=20, name="gauntlet_v2_cuff_" + tag, material="steel")
+    cuff.translate((ARM_R * side, 0, 0))
+    meshes.append(_out(cuff))
+    kn = dome(0.46, 0.14, 1.02, segments=18, name="gauntlet_v2_knuckle_" + tag, material="steel")
+    kn.translate((ARM_R * side, 0, 0))
+    meshes.append(_out(kn))
+    mitt = lathe([(0.46, 0.96), (0.42, 0.90), (0.30, 0.86), (0.16, 0.845), (0.02, 0.83)],
+                 segments=18, name="gauntlet_v2_mitten_" + tag, material="steel")
+    mitt.translate((ARM_R * side, 0, 0))
+    meshes.append(_out(mitt))
+    return meshes
+
+
+def greave_v2(side):
+    """Caneleira anatômica com saliência da panturrilha."""
+    tag = "R" if side > 0 else "L"
+    prof = [(0.52, 0.05), (0.56, 0.30), (0.58, 0.55), (0.55, 0.80), (0.50, 0.95)]
+    m = lathe(prof, segments=22, name="greave_v2_" + tag, material="steel")
+    m.translate((LEG_R * side, 0, 0))
+    return _out(m)
+
+
+def sabaton_v2(side):
+    """Escarpim pontudo (estilo gótico)."""
+    tag = "R" if side > 0 else "L"
+    prof = [(0.30, 0.0), (0.30, 0.08), (0.28, 0.22), (0.22, 0.38), (0.12, 0.52), (0.02, 0.62)]
+    s = lathe(prof, segments=18, name="sabaton_v2_" + tag, material="steel")
+    s.rotate_x(math.pi / 2)
+    s.scale((0.70, 0.55, 1.0))
+    s.translate((LEG_R * side, 0.16, 0.08))
+    return _out(s)
+
+
+def poleyn_v2(side):
+    """Joelheira com asa lateral."""
+    tag = "R" if side > 0 else "L"
+    meshes = []
+    c = _cup(0.44, 0.36, (LEG_R * side, 1.0, 0.55), "+z", name="poleyn_v2_" + tag, material="steel")
+    meshes.append(_out(c))
+    fan = rounded_rect_plate(0.18, 0.30, 0.04, corner=0.06, segments=2,
+                             name="poleyn_v2_fan_" + tag, material="steel")
+    fan.rotate_y(side * math.pi / 2)
+    fan.translate((LEG_R * side + (0.46 if side > 0 else -0.46), 1.0, 0.0))
+    meshes.append(_out(fan))
+    return meshes
+
+
+# ==============================================================================
 # Montagem das variantes
 # ==============================================================================
 
@@ -525,26 +798,29 @@ def build_variant(name):
     if name == "european":
         for m, b in underlayer_parts("mail"):
             add(m, b)
-        add(cuirass_front(), "Torso")
-        add(cuirass_back(), "Torso")
+        add(cuirass_breast(), "Torso")
+        add(cuirass_plackart(), "Torso")
+        add(stop_rib(), "Torso")
+        add(lance_rest(), "Torso")
+        add(cuirass_back_v2(), "Torso")
         add(gorget(), "Torso")
-        add(fauld(), "Torso")
+        add(fauld_v2(), "Torso")
         for s in (1, -1):
-            add(tasset(s), "Torso")
-            add(pauldron(s), "Torso")
+            add(tasset_v2(s), "Torso")
+            add(pauldron_v2(s), "Torso")
             add(rondel(s), "Torso")
-        add(helmet_european(), "Head")
+        add(helmet_armet(), "Head")
         for s in (1, -1):
             bone_arm = "Right Arm" if s > 0 else "Left Arm"
             bone_leg = "Right Leg" if s > 0 else "Left Leg"
             add(rerebrace(s), bone_arm)
-            add(couter(s), bone_arm)
+            add(couter_v2(s), bone_arm)
             add(vambrace(s), bone_arm)
-            add(gauntlet(s), bone_arm)
+            add(gauntlet_v2(s), bone_arm)
             add(cuisse(s), bone_leg)
-            add(poleyn(s), bone_leg)
-            add(greave(s), bone_leg)
-            add(sabaton(s), bone_leg)
+            add(poleyn_v2(s), bone_leg)
+            add(greave_v2(s), bone_leg)
+            add(sabaton_v2(s), bone_leg)
 
     elif name == "japanese":
         for m, b in underlayer_parts("silk"):

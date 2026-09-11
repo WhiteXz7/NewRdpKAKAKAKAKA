@@ -2,8 +2,8 @@
   "fps": 30,
   "variants": {
     "european": {
-      "meshes": 41,
-      "triangles": 11368
+      "meshes": 61,
+      "triangles": 16848
     },
     "japanese": {
       "meshes": 45,
